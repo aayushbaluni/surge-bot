@@ -1,115 +1,113 @@
 import { Telegraf } from 'telegraf';
 import { Context } from '../types';
-import { User, ReferralReward } from '../database';
+import { User, AffiliateReward } from '../database';
 import { logger } from '../utils/logger';
 import { ADMIN_CHAT_ID } from '../config/env';
 
-export function setupReferralCommands(bot: Telegraf<Context>) {
-  logger.info('Setting up referral commands...');
+export function setupAffiliateCommands(bot: Telegraf<Context>) {
+  logger.info('Setting up affiliate commands...');
 
-  // Handle /referral command
-  bot.command('referral', async (ctx) => {
-    logger.info('Referral command received', { 
-      userId: ctx.from.id,
-      username: ctx.from.username
+  // Handle /affiliate command
+  bot.command('affiliate', async (ctx) => {
+    logger.info('Affiliate command received', {
+      userId: ctx.from?.id,
+      username: ctx.from?.username
     });
 
     try {
       if (!ctx.from) {
-        logger.error('No user context in referral command');
+        logger.error('No user context in affiliate command');
+        await ctx.reply('Error: Could not identify user.');
         return;
       }
 
-      // Initialize or get user
+      // Check if user exists in database
       let user = await User.findOne({ userId: ctx.from.id });
-      
+      logger.info('User lookup result:', { 
+        userId: ctx.from.id, 
+        exists: !!user,
+        userData: user ? {
+          subscription: user.subscription,
+          tvUsername: user.tvUsername
+        } : null
+      });
+
       if (!user) {
-        logger.info('User not found, creating new user');
-        // Create new user if doesn't exist
-        user = await User.create({
+        logger.info('Creating new user for affiliate command', { userId: ctx.from.id });
+        user = new User({
           userId: ctx.from.id,
           username: ctx.from.username,
           firstName: ctx.from.first_name,
           lastName: ctx.from.last_name,
-          referralStats: {
+          subscription: {
+            isActive: false,
+            plan: null,
+            startDate: null,
+            endDate: null
+          },
+          affiliateStats: {
             totalEarnings: 0,
             pendingEarnings: 0,
-            totalReferrals: 0,
-            successfulReferrals: 0
+            totalAffiliates: 0,
+            successfulAffiliates: 0
+          }
+        });
+        await user.save();
+        logger.info('New user created successfully', { 
+          userId: ctx.from.id,
+          userData: {
+            subscription: user.subscription,
+            tvUsername: user.tvUsername
           }
         });
       }
 
-      logger.info('User lookup/creation result:', { 
+      logger.info('User data for affiliate command:', {
         userId: ctx.from.id,
-        hasReferralCode: user?.referralCode ? 'yes' : 'no'
+        hasAffiliateCode: user?.affiliateCode ? 'yes' : 'no'
       });
 
-      if (!user.referralCode) {
-        logger.info('Generating new referral code for user');
-        // Generate a new referral code if none exists
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        let code = '';
-        for (let i = 0; i < 6; i++) {
-          code += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-        user.referralCode = code;
+      if (!user.affiliateCode) {
+        logger.info('Generating new affiliate code for user');
+        // Generate a new affiliate code if none exists
+        const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+        user.affiliateCode = code;
         await user.save();
       }
 
-      // Get pending rewards
-      const pendingRewards = await ReferralReward.find({
-        userId: ctx.from.id,
+      const pendingRewards = await AffiliateReward.find({
+        affiliateCode: user.affiliateCode,
         status: 'pending'
       });
 
-      const totalPending = pendingRewards.reduce((sum, reward) => sum + reward.amount, 0);
+      const affiliateMessage = `🎯 Your Affiliate Program
 
-      const referralMessage = `🎯 Your Referral Program
+Your Affiliate Code: <code>${user.affiliateCode}</code>
 
-Your Referral Code: <code>${user.referralCode}</code>
+Share your affiliate link:
+https://t.me/${ctx.botInfo.username}?start=${user.affiliateCode}
 
-Share this link to invite others:
-https://t.me/${ctx.botInfo.username}?start=${user.referralCode}
+📊 Your Affiliate Stats:
+• Total Earnings: ${user.affiliateStats?.totalEarnings || 0} SOL
+• Pending Earnings: ${user.affiliateStats?.pendingEarnings || 0} SOL
+• Total Affiliates: ${user.affiliateStats?.totalAffiliates || 0}
+• Successful Affiliates: ${user.affiliateStats?.successfulAffiliates || 0}
 
-📊 Your Referral Stats:
-• Total Earnings: ${user.referralStats?.totalEarnings || 0} SOL
-• Pending Earnings: ${totalPending} SOL
-• Total Referrals: ${user.referralStats?.totalReferrals || 0}
-• Successful Referrals: ${user.referralStats?.successfulReferrals || 0}
+💰 You earn 10% of every successful purchase made through your affiliate link!`;
 
-💰 You earn 10% of every successful purchase made through your referral!`;
-
-      const keyboard = {
-        inline_keyboard: [
-          [
-            { text: '💳 Set Wallet Address', callback_data: 'set_wallet' },
-            { text: '📊 View Rewards', callback_data: 'view_rewards' }
-          ],
-          [
-            { text: '🔄 Back to Main Menu', callback_data: 'back_to_main' }
-          ]
-        ]
-      };
-
-      logger.info('Sending referral message', { 
-        userId: ctx.from.id,
-        hasKeyboard: true
-      });
-
-      await ctx.reply(referralMessage, {
+      await ctx.reply(affiliateMessage, {
         parse_mode: 'HTML',
-        reply_markup: keyboard
+        reply_markup: {
+          inline_keyboard: [
+            [
+              { text: '🔙 Back to Subscription', callback_data: 'back_to_subscription' }
+            ]
+          ]
+        }
       });
-
-      logger.info('Referral message sent successfully', { userId: ctx.from.id });
     } catch (error) {
-      logger.error('Error in referral command:', {
-        error: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined,
-        userId: ctx.from?.id
-      });
-      await ctx.reply('Sorry, there was an error. Please try again or use /start to initialize the bot.');
+      logger.error('Error in affiliate command:', error);
+      await ctx.reply('Error processing affiliate command. Please try again later.');
     }
   });
 
@@ -140,7 +138,7 @@ https://t.me/${ctx.botInfo.username}?start=${user.referralCode}
   bot.action('view_rewards', async (ctx) => {
     try {
       await ctx.answerCbQuery();
-      const rewards = await ReferralReward.find({ 
+      const rewards = await AffiliateReward.find({ 
         userId: ctx.from.id,
         status: 'pending'
       }).sort({ createdAt: -1 });
@@ -193,7 +191,7 @@ https://t.me/${ctx.botInfo.username}?start=${user.referralCode}
       );
 
       // Get pending rewards
-      const pendingRewards = await ReferralReward.find({
+      const pendingRewards = await AffiliateReward.find({
         userId: ctx.from.id,
         status: 'pending'
       });
@@ -232,7 +230,7 @@ https://t.me/${ctx.botInfo.username}?start=${user.referralCode}
         return;
       }
 
-      const pendingRewards = await ReferralReward.find({
+      const pendingRewards = await AffiliateReward.find({
         userId: ctx.from.id,
         status: 'pending'
       });
@@ -278,7 +276,7 @@ https://t.me/${ctx.botInfo.username}?start=${user.referralCode}
         return;
       }
 
-      const pendingRewards = await ReferralReward.find({
+      const pendingRewards = await AffiliateReward.find({
         userId,
         status: 'pending'
       });
@@ -324,7 +322,7 @@ Click below to confirm payment:`;
         return;
       }
 
-      const pendingRewards = await ReferralReward.find({
+      const pendingRewards = await AffiliateReward.find({
         userId,
         status: 'pending'
       });
@@ -337,7 +335,7 @@ Click below to confirm payment:`;
       const totalAmount = pendingRewards.reduce((sum, reward) => sum + reward.amount, 0);
 
       // Update rewards status
-      await ReferralReward.updateMany(
+      await AffiliateReward.updateMany(
         { userId, status: 'pending' },
         { 
           status: 'paid',
@@ -346,13 +344,13 @@ Click below to confirm payment:`;
         }
       );
 
-      // Update user's referral stats
+      // Update user's affiliate stats
       await User.findOneAndUpdate(
         { userId },
         {
           $inc: {
-            'referralStats.totalEarnings': totalAmount,
-            'referralStats.pendingEarnings': -totalAmount
+            'affiliateStats.totalEarnings': totalAmount,
+            'affiliateStats.pendingEarnings': -totalAmount
           }
         }
       );
@@ -360,7 +358,7 @@ Click below to confirm payment:`;
       // Notify user
       await ctx.telegram.sendMessage(
         userId,
-        `✅ Your referral rewards have been paid!\n\nAmount: ${totalAmount} SOL\nWallet: <code>${user.walletAddress}</code>\n\nThank you for being part of our referral program! 🎉`,
+        `✅ Your affiliate rewards have been paid!\n\nAmount: ${totalAmount} SOL\nWallet: <code>${user.walletAddress}</code>\n\nThank you for being part of our affiliate program! 🎉`,
         { parse_mode: 'HTML' }
       );
 

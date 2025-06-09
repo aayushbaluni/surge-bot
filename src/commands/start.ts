@@ -34,31 +34,43 @@ async function getSolPrice(): Promise<number> {
   }
 }
 
-// Function to get SURGE token price and market data
-async function getSurgeTokenInfo(): Promise<any> {
-  try {
-    // Mock data - replace with actual API call
-    return {
-      price: 0.025,
-      change24h: 12.5,
-      marketCap: 2500000,
-      volume24h: 150000
-    };
-  } catch (error) {
-    logger.error('Error fetching SURGE token info:', error);
-    return null;
-  }
-}
-
 // Function to verify Solana transaction
 async function verifyTransaction(txId: string, expectedAmount: number): Promise<boolean> {
   try {
     const transaction = await connection.getTransaction(txId, { commitment: 'confirmed' });
     if (!transaction) return false;
     
-    // For now, we'll simulate verification since this requires proper wallet checking
-    // In production, you would check if the transaction sends the expected amount to your wallet
-    return true; // Simplified for demo
+    // Check if transaction is confirmed
+    if (!transaction.meta?.status?.Ok) return false;
+
+    // Get the receiver address from the transaction
+    const receiverAddress = transaction.meta.postBalances[0].toString();
+    const expectedReceiver = SOLANA_WALLET_ADDRESS;
+
+    // Verify receiver address matches our wallet
+    if (receiverAddress !== expectedReceiver) {
+      logger.error('Transaction receiver address mismatch', {
+        expected: expectedReceiver,
+        received: receiverAddress
+      });
+      return false;
+    }
+
+    // Calculate the actual amount received
+    const preBalance = transaction.meta.preBalances[0];
+    const postBalance = transaction.meta.postBalances[0];
+    const actualAmount = (postBalance - preBalance) / LAMPORTS_PER_SOL;
+
+    // Verify the amount matches expected amount
+    if (Math.abs(actualAmount - expectedAmount) > 0.001) { // Allow 0.001 SOL difference for fees
+      logger.error('Transaction amount mismatch', {
+        expected: expectedAmount,
+        received: actualAmount
+      });
+      return false;
+    }
+
+    return true;
   } catch (error) {
     logger.error('Error verifying transaction:', error);
     return false;
@@ -119,7 +131,6 @@ Choose an option below to get started:`;
             { text: '🌐 Website', url: WEBSITE_URL }
           ],
           [
-            { text: '💹 Token Info', callback_data: 'token_info' },
             { text: '🐦 Twitter', url: TWITTER_URL }
           ],
           [
@@ -188,14 +199,10 @@ Choose an option:`;
             { text: '📈 My Subscription', callback_data: 'my_subscription' }
           ],
           [
-            { text: '⚙️ Settings', callback_data: 'settings' },
-            { text: '🔄 Renew', callback_data: 'renew_subscription' }
-          ],
-          [
+            { text: '🔄 Renew', callback_data: 'renew_subscription' },
             { text: '❓ FAQ', callback_data: 'faq' }
           ],
           [
-            { text: '💹 Token Info', callback_data: 'token_info' },
             { text: '🤝 Affiliate Program', callback_data: 'affiliate_program' }
           ],
           [
@@ -216,6 +223,29 @@ Choose an option:`;
 
   // Setup additional commands and handlers
   setupAdditionalCommands(bot);
+
+  // Handle callback queries for menu buttons
+  bot.action('my_subscription', async (ctx) => {
+    try {
+      await ctx.answerCbQuery();
+      await ctx.reply('Redirecting to subscription details...');
+      await ctx.telegram.sendMessage(ctx.chat.id, '/subscription');
+    } catch (error) {
+      logger.error('Error in my_subscription action:', error);
+      await ctx.reply('Error loading subscription details. Please try /subscription command.');
+    }
+  });
+
+  bot.action('renew_subscription', async (ctx) => {
+    try {
+      await ctx.answerCbQuery();
+      await ctx.reply('Redirecting to renewal options...');
+      await ctx.telegram.sendMessage(ctx.chat.id, '/renew');
+    } catch (error) {
+      logger.error('Error in renew_subscription action:', error);
+      await ctx.reply('Error loading renewal options. Please try /renew command.');
+    }
+  });
 }
 
 function setupAdditionalCommands(bot: Telegraf<Context>) {
@@ -225,27 +255,27 @@ function setupAdditionalCommands(bot: Telegraf<Context>) {
     try {
       const user = await User.findOne({ userId: ctx.from.id });
       
-      if (!user?.referralCode) {
-        await ctx.reply('Error: Referral code not found. Please contact support.');
+      if (!user?.affiliateCode) {
+        await ctx.reply('Error: Affiliate code not found. Please contact support.');
         return;
       }
 
       const botUsername = ctx.botInfo?.username || 'SURGEBot';
-      const inviteLink = `https://t.me/${botUsername}?start=${user.referralCode}`;
+      const inviteLink = `https://t.me/${botUsername}?start=${user.affiliateCode}`;
       
-      const inviteMessage = `🎯 **Invite Friends to SURGE Bot**
+      const inviteMessage = `🤝 **Invite Friends to SURGE**
 
-Share your unique invitation link and earn rewards!
+Share your affiliate link and earn rewards!
 
-**Your Invite Link:**
+**Your Affiliate Link:**
 \`${inviteLink}\`
 
-**Share and Earn:**
-• 10% commission on every paid subscription
-• Lifetime earnings from your referrals
-• Monthly payouts in SOL or USDT
+**How it works:**
+• Share your link with friends
+• Get 10% commission on their purchases
+• Lifetime earnings from your affiliates
 
-Use /affiliate to track your earnings and referrals.`;
+Use /affiliate to track your earnings and affiliates.`;
 
       const keyboard: InlineKeyboardMarkup = {
         inline_keyboard: [
@@ -319,7 +349,6 @@ For questions, contact: ${SUPPORT_EMAIL}`;
             { text: '🔒 Privacy Policy', callback_data: 'privacy_policy' }
           ],
           [
-            { text: '🆘 Contact Support', callback_data: 'support' },
             { text: '🔙 Main Menu', callback_data: 'back_to_main' }
           ]
         ]
@@ -392,7 +421,6 @@ For privacy questions: ${SUPPORT_EMAIL}
             { text: '📋 Terms of Service', callback_data: 'terms_service' }
           ],
           [
-            { text: '🆘 Contact Support', callback_data: 'support' },
             { text: '🔙 Main Menu', callback_data: 'back_to_main' }
           ]
         ]
@@ -424,6 +452,42 @@ For privacy questions: ${SUPPORT_EMAIL}
       await showPrivacyPolicy(ctx);
     } catch (error) {
       await ctx.reply('Error loading privacy policy. Use /privacy command.');
+    }
+  });
+
+  // /joinchannel command
+  bot.command('joinchannel', async (ctx) => {
+    try {
+      const message = `📢 **Join SURGE Announcements Channel**
+
+Stay updated with the latest news, updates, and announcements from SURGE!
+
+**Channel Benefits:**
+• Latest trading signals
+• Important updates
+• Community announcements
+• Exclusive content
+
+Click the button below to join our channel:`;
+
+      const keyboard: InlineKeyboardMarkup = {
+        inline_keyboard: [
+          [
+            { text: '📢 Join Channel', url: SURGE_ANNOUNCEMENTS_CHANNEL }
+          ],
+          [
+            { text: '🔙 Main Menu', callback_data: 'back_to_main' }
+          ]
+        ]
+      };
+
+      await ctx.reply(message, { 
+        reply_markup: keyboard,
+        parse_mode: 'Markdown'
+      });
+    } catch (error) {
+      logger.error('Error in joinchannel command:', error);
+      await ctx.reply('Error joining channel. Please try again later.');
     }
   });
 }
@@ -475,7 +539,6 @@ For questions, contact: ${SUPPORT_EMAIL}`;
         { text: '🔒 Privacy Policy', callback_data: 'privacy_policy' }
       ],
       [
-        { text: '🆘 Contact Support', callback_data: 'support' },
         { text: '🔙 Main Menu', callback_data: 'back_to_main' }
       ]
     ]
@@ -549,7 +612,6 @@ For privacy questions: ${SUPPORT_EMAIL}
         { text: '📋 Terms of Service', callback_data: 'terms_service' }
       ],
       [
-        { text: '🆘 Contact Support', callback_data: 'support' },
         { text: '🔙 Main Menu', callback_data: 'back_to_main' }
       ]
     ]

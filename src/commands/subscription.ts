@@ -112,164 +112,100 @@ export async function setupSubscriptionCommand(bot: Telegraf<Context>) {
       }
     });
 
-    bot.action('settings', async (ctx) => {
-      logger.info('Settings action triggered', { 
+    bot.action('cancel_payment', async (ctx) => {
+      logger.info('Cancel payment action triggered', { 
         userId: ctx.from?.id,
         username: ctx.from?.username
       });
       try {
         await ctx.answerCbQuery();
-        await ctx.reply('Please update your settings:', {
-          reply_markup: {
-            inline_keyboard: [
-              [
-                { text: '📊 Update TradingView Username', callback_data: 'update_tv_username' }
-              ],
-              [
-                { text: '🔙 Back', callback_data: 'back_to_subscription' }
-              ]
-            ]
-          }
-        });
-      } catch (error) {
-        logger.error('Error in settings action:', error);
-        await ctx.reply('Error loading settings. Please try again.');
-      }
-    });
-
-    bot.action('view_dashboard', async (ctx) => {
-      logger.info('View dashboard action triggered', { 
-        userId: ctx.from?.id,
-        username: ctx.from?.username
-      });
-      try {
-        await ctx.answerCbQuery();
-        await ctx.reply('🚧 Dashboard is currently under maintenance. Please check back later.');
-        return;
-        
-        /* Commented out dashboard functionality
         const user = await User.findOne({ userId: ctx.from?.id });
-        
-        if (!user?.subscription?.isActive) {
-          const message = `🔒 **Dashboard Access Required**
-
-You need an active subscription to view the dashboard.
-
-**Available Plans:**
-• 🎁 Trial – 0.1 SOL (24h)
-• 📅 Monthly – 1 SOL
-• 🔥 6-Month – 4.5 SOL (Save 25%)
-• ⭐ Yearly – 8 SOL (Save 33%)
-• 💎 Lifetime – 10 SOL (100 seats)
-
-Choose an option below:`;
-
-          const keyboard: InlineKeyboardMarkup = {
-            inline_keyboard: [
-              [
-                { text: '📋 View Plans', callback_data: 'view_plans' }
-              ],
-              [
-                { text: '❓ FAQ', callback_data: 'faq' },
-                { text: '🆘 Support', callback_data: 'support' }
-              ]
-            ]
-          };
-
-          await ctx.reply(message, { 
-            reply_markup: keyboard,
-            parse_mode: 'Markdown'
-          });
+        if (!user) {
+          logger.error('User not found in cancel_payment', { userId: ctx.from?.id });
+          await ctx.reply('Error: User not found. Please try /start first.');
           return;
         }
-
-        const dashboardMessage = `📊 **Trading Performance Dashboard**
-
-**Overall Statistics:**
-• Win Rate: 96.5%
-• Total Trades: 156
-• Average Profit: +4.2%
-• Best Trade: +12.8%
-• Risk/Reward: 1:2.5
-
-**Recent Performance:**
-• Last 7 Days: +18.5%
-• Last 30 Days: +42.3%
-• Last 90 Days: +156.8%
-
-**Top Performing Assets:**
-1. SOL: +28.5%
-2. AVAX: +22.3%
-3. ETH: +18.7%
-
-**Risk Management:**
-• Average Stop Loss: -2.1%
-• Max Drawdown: -4.5%
-• Recovery Time: 2.3 days
-
-View detailed trade history and analytics in the private group.`;
-
-        const keyboard: InlineKeyboardMarkup = {
-          inline_keyboard: [
-            [
-              { text: '📊 View Signals', callback_data: 'view_signals' },
-              { text: '📈 My Stats', callback_data: 'view_stats' }
-            ],
-            [
-              { text: '🔙 Main Menu', callback_data: 'back_to_main' }
-            ]
-          ]
-        };
-
-        await ctx.reply(dashboardMessage, { 
-          reply_markup: keyboard,
-          parse_mode: 'Markdown'
-        });
-        */
+        await handleSubscriptionCommand(ctx, user);
       } catch (error) {
-        logger.error('Error in view_dashboard action:', error);
-        await ctx.reply('Error loading dashboard. Please try again.');
+        logger.error('Error in cancel_payment action:', error);
+        await ctx.reply('Error cancelling payment. Please try again.');
       }
     });
 
-    bot.action('view_signals', async (ctx) => {
-      logger.info('View signals action triggered', { 
+    bot.action('back_to_plans', async (ctx) => {
+      logger.info('Back to plans action triggered', { 
         userId: ctx.from?.id,
         username: ctx.from?.username
       });
       try {
         await ctx.answerCbQuery();
-        await ctx.reply('📈 Recent signals will be displayed here.');
+        const user = await User.findOne({ userId: ctx.from?.id });
+        if (!user) {
+          logger.error('User not found in back_to_plans', { userId: ctx.from?.id });
+          await ctx.reply('Error: User not found. Please try /start first.');
+          return;
+        }
+        await handleSubscriptionCommand(ctx, user);
       } catch (error) {
-        logger.error('Error in view_signals action:', error);
-        await ctx.reply('Error loading signals. Please try again.');
+        logger.error('Error in back_to_plans action:', error);
+        await ctx.reply('Error loading plans. Please try again.');
       }
     });
 
-    bot.action('back_to_main', async (ctx) => {
-      logger.info('Back to main action triggered', { 
+    bot.action('affiliate_program', async (ctx) => {
+      logger.info('Affiliate program action triggered', { 
         userId: ctx.from?.id,
         username: ctx.from?.username
       });
       try {
         await ctx.answerCbQuery();
-        await ctx.reply('Main menu:', {
+        await ctx.reply('Please use /affiliate command to view the affiliate program details and track your earnings.');
+      } catch (error) {
+        logger.error('Error in affiliate_program action:', error);
+        await ctx.reply('Error processing affiliate program request. Please try again.');
+      }
+    });
+
+    bot.action('faq', async (ctx) => {
+      logger.info('FAQ action triggered', { 
+        userId: ctx.from?.id,
+        username: ctx.from?.username
+      });
+      try {
+        await ctx.answerCbQuery();
+        const faqMessage = `❓ <b>Frequently Asked Questions</b>
+
+1. <b>How do I subscribe?</b>
+   • Choose a plan
+   • Send SOL to the provided wallet
+   • Submit your transaction ID
+   • Provide your TradingView username
+
+2. <b>How do I renew?</b>
+   • Use the Renew button in your subscription details
+   • Follow the same payment process
+
+3. <b>What happens after payment?</b>
+   • Your payment will be verified within 1 hour
+   • You'll receive a confirmation message
+   • Your subscription will be activated
+
+4. <b>Need more help?</b>
+   Contact our support team for assistance.`;
+
+        await ctx.editMessageText(faqMessage, {
+          parse_mode: 'HTML',
           reply_markup: {
             inline_keyboard: [
               [
-                { text: '📋 View Plans', callback_data: 'view_plans' },
-                { text: '📊 Dashboard', callback_data: 'view_dashboard' }
-              ],
-              [
-                { text: '⚙️ Settings', callback_data: 'settings' },
-                { text: '❓ Help', callback_data: 'help' }
+                { text: '🔙 Back to Subscription', callback_data: 'back_to_subscription' }
               ]
             ]
           }
         });
       } catch (error) {
-        logger.error('Error in back_to_main action:', error);
-        await ctx.reply('Error loading main menu. Please try again.');
+        logger.error('Error in FAQ action:', error);
+        await ctx.reply('Error loading FAQ. Please try again.');
       }
     });
 
@@ -327,8 +263,7 @@ Choose an option below:`;
         { text: '📋 View Plans', callback_data: 'view_plans' }
       ],
       [
-        { text: '❓ FAQ', callback_data: 'faq' },
-        { text: '🆘 Support', callback_data: 'support' }
+        { text: '❓ FAQ', callback_data: 'faq' }
       ]
     ]
   };
@@ -345,11 +280,43 @@ async function handleActiveSubscription(ctx: Context, user: any) {
   const username = escapeMarkdown(user.username || 'N/A');
   const startDate = escapeMarkdown(user.subscription.startDate.toLocaleDateString());
   const endDate = escapeMarkdown(user.subscription.endDate.toLocaleDateString());
-  const daysRemaining = Math.ceil((user.subscription.endDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+  
+  // Calculate time remaining
+  const now = new Date();
+  const end = new Date(user.subscription.endDate);
+  const timeRemaining = end.getTime() - now.getTime();
+  
+  // Format time remaining based on plan type
+  let timeRemainingText = '';
+  if (user.subscription.plan === 'Trial Plan') {
+    logger.warn('Trial plan detected', { 
+      userId: ctx.from?.id,
+      username: ctx.from?.username,
+      plan: user.subscription.plan
+    });
+    // For trial plans, always show hours, minutes, seconds
+    const totalSeconds = Math.floor(timeRemaining / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    
+    // If more than 24 hours, show days instead
+    if (hours >= 24) {
+      const days = Math.floor(hours / 24);
+      timeRemainingText = `${days} days`;
+    } else {
+      timeRemainingText = `${hours}h ${minutes}m ${seconds}s`;
+    }
+  } else {
+    // For other plans, show days
+    const daysRemaining = Math.ceil(timeRemaining / (1000 * 60 * 60 * 24));
+    timeRemainingText = `${daysRemaining} days`;
+  }
+
   const planName = escapeMarkdown(user.subscription.plan);
 
   // Check if subscription has expired
-  if (daysRemaining <= 0) {
+  if (timeRemaining <= 0) {
     // Update user's subscription status in database
     await User.findOneAndUpdate(
       { userId: user.userId },
@@ -374,8 +341,7 @@ Choose an option below to renew your subscription:`;
           { text: '📋 View Plans', callback_data: 'view_plans' }
         ],
         [
-          { text: '❓ FAQ', callback_data: 'faq' },
-          { text: '🆘 Support', callback_data: 'support' }
+          { text: '❓ FAQ', callback_data: 'faq' }
         ]
       ]
     };
@@ -392,7 +358,7 @@ Choose an option below to renew your subscription:`;
 👤 User: @${username}
 📅 Start Date: ${startDate}
 📅 End Date: ${endDate}
-⏳ Days Remaining: ${daysRemaining}
+⏳ Time Remaining: ${timeRemainingText}
 📋 Plan: ${planName}
 
 Choose an option below:`;
@@ -400,16 +366,10 @@ Choose an option below:`;
   const keyboard: InlineKeyboardMarkup = {
     inline_keyboard: [
       [
-        { text: '🔄 Renew', callback_data: 'renew_subscription' },
-        { text: '⚙️ Settings', callback_data: 'settings' }
+        { text: '🔄 Renew', callback_data: 'renew_subscription' }
       ],
       [
-        { text: '📊 Dashboard', callback_data: 'view_dashboard' },
-        { text: '📈 Signals', callback_data: 'view_signals' }
-      ],
-      [
-        { text: '❓ FAQ', callback_data: 'faq' },
-        { text: '🆘 Support', callback_data: 'support' }
+        { text: '❓ FAQ', callback_data: 'faq' }
       ]
     ]
   };

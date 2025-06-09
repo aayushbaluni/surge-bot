@@ -4,7 +4,7 @@ import { setupPlanCommands } from './commands/plans';
 import { setupPaymentCommands } from './commands/payment';
 import { setupHelpCommand } from './commands/help';
 import { setupAdminCommands } from './commands/admin';
-import { setupReferralCommands } from './commands/referral';
+import { setupAffiliateCommands } from './commands/affiliate';
 import { setupSurgeCommands } from './commands/surge';
 import { setupFaqCommand } from './commands/faq';
 import { setupMiddleware } from './middleware';
@@ -12,7 +12,7 @@ import { logger } from './utils/logger';
 import { connectDatabase } from './database';
 import { Context } from './types';
 import { ENV, BOT_TOKEN, isProduction } from './config/env';
-import { User, ReferralReward } from './database';
+import { User, AffiliateReward } from './database';
 
 logger.info('Starting to import setupSubscriptionCommand...');
 import { setupSubscriptionCommand } from './commands/subscription';
@@ -24,11 +24,9 @@ const BOT_COMMANDS = [
   { command: 'menu', description: 'Show main menu' },
   { command: 'subscription', description: 'Manage your subscription' },
   { command: 'renew', description: 'Renew your current plan' },
-  { command: 'settings', description: 'Update preferences and TradingView username' },
   { command: 'faq', description: 'Frequently asked questions' },
-  { command: 'tokeninfo', description: 'View SURGE token information' },
   { command: 'joinchannel', description: 'Join official announcements channel' },
-  { command: 'affiliate', description: 'View referral program and earnings' },
+  { command: 'affiliate', description: 'View affiliate program and earnings' },
   { command: 'twitter', description: 'Follow SURGE on Twitter' },
   { command: 'invite', description: 'Send bot invitation link to friends' },
   { command: 'terms', description: 'Terms of service' },
@@ -189,7 +187,7 @@ bot.command('affiliate', async (ctx) => {
     }
 
     // Get pending rewards
-    const pendingRewards = await ReferralReward.find({
+    const pendingRewards = await AffiliateReward.find({
       userId: ctx.from.id,
       status: 'pending'
     });
@@ -366,7 +364,7 @@ async function startBot() {
       { name: 'Payment Commands', setup: setupPaymentCommands },
       { name: 'Help Command', setup: setupHelpCommand },
       { name: 'Admin Commands', setup: setupAdminCommands },
-      { name: 'Referral Commands', setup: setupReferralCommands },
+      { name: 'Affiliate Commands', setup: setupAffiliateCommands },
       { name: 'SURGE Commands', setup: setupSurgeCommands },
       { name: 'FAQ Command', setup: setupFaqCommand }
     ];

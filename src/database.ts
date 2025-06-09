@@ -38,45 +38,31 @@ export async function connectDatabase() {
 
 // User Schema
 const userSchema = new mongoose.Schema({
-  userId: { type: Number, required: true, unique: true, index: true },
-  username: { type: String, index: true },
+  userId: { type: Number, required: true, unique: true },
+  username: String,
   firstName: String,
   lastName: String,
-  tvUsername: { type: String, index: true },
-  lastActive: { type: Date, default: Date.now },
+  tvUsername: String,
+  walletAddress: String,
+  affiliateCode: { type: String, unique: true, index: true },
   subscription: {
-    plan: { type: String, enum: ['trial', 'monthly', 'yearly', 'lifetime'] },
+    isActive: { type: Boolean, default: false },
+    plan: String,
     startDate: Date,
-    endDate: Date,
-    isActive: { type: Boolean, default: false }
+    endDate: Date
   },
-  payment: {
-    amount: Number,
-    txId: { type: String, index: true },
-    status: { type: String, enum: ['pending', 'completed', 'failed'] },
-    date: Date
-  },
-  dashboardToken: { type: String, index: true },
-  referralCode: { type: String, unique: true, index: true },
-  referredBy: { type: String, index: true },
-  referralStats: {
+  affiliateStats: {
     totalEarnings: { type: Number, default: 0 },
     pendingEarnings: { type: Number, default: 0 },
-    totalReferrals: { type: Number, default: 0 },
-    successfulReferrals: { type: Number, default: 0 }
-  },
-  walletAddress: String,
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
-}, {
-  timestamps: true,
-  toJSON: { virtuals: true },
-  toObject: { virtuals: true }
+    totalAffiliates: { type: Number, default: 0 },
+    successfulAffiliates: { type: Number, default: 0 }
+  }
 });
 
-// Add compound indexes for common queries
-userSchema.index({ 'subscription.isActive': 1, 'subscription.endDate': 1 });
-userSchema.index({ 'referralStats.totalEarnings': -1 });
+// Add indexes for common queries
+userSchema.index({ userId: 1 });
+userSchema.index({ 'subscription.isActive': 1 });
+userSchema.index({ 'affiliateStats.totalEarnings': -1 });
 
 // Transaction Schema
 const transactionSchema = new mongoose.Schema({
@@ -95,50 +81,32 @@ const transactionSchema = new mongoose.Schema({
 // Add compound index for transaction queries
 transactionSchema.index({ userId: 1, status: 1 });
 
-// Referral Reward Schema
-const referralRewardSchema = new mongoose.Schema({
+// Affiliate Reward Schema
+const affiliateRewardSchema = new mongoose.Schema({
   userId: { type: Number, required: true, index: true },
-  referralCode: { type: String, required: true, index: true },
+  affiliateCode: { type: String, required: true, index: true },
   amount: { type: Number, required: true },
-  status: { 
-    type: String, 
-    enum: ['pending', 'paid', 'cancelled'],
-    default: 'pending',
-    index: true
-  },
-  walletAddress: String,
-  paymentTxId: { type: String, index: true },
+  status: { type: String, enum: ['pending', 'paid'], default: 'pending' },
   createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
-}, {
-  timestamps: true
+  paidAt: Date
 });
 
-// Add compound index for referral reward queries
-referralRewardSchema.index({ userId: 1, status: 1 });
+// Add compound index for affiliate reward queries
+affiliateRewardSchema.index({ userId: 1, status: 1 });
 
-// Generate unique referral code
+// Generate unique affiliate code
 userSchema.pre('save', async function(next) {
-  if (!this.referralCode) {
-    const generateCode = () => {
-      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-      let code = '';
-      for (let i = 0; i < 6; i++) {
-        code += chars.charAt(Math.floor(Math.random() * chars.length));
-      }
-      return code;
-    };
-
+  if (!this.affiliateCode) {
     let code;
     let isUnique = false;
     while (!isUnique) {
-      code = generateCode();
-      const existingUser = await User.findOne({ referralCode: code });
+      code = Math.random().toString(36).substring(2, 8).toUpperCase();
+      const existingUser = await User.findOne({ affiliateCode: code });
       if (!existingUser) {
         isUnique = true;
       }
     }
-    this.referralCode = code;
+    this.affiliateCode = code;
   }
   next();
 });
@@ -146,4 +114,4 @@ userSchema.pre('save', async function(next) {
 // Create models
 export const User = mongoose.model('User', userSchema);
 export const Transaction = mongoose.model('Transaction', transactionSchema);
-export const ReferralReward = mongoose.model('ReferralReward', referralRewardSchema); 
+export const AffiliateReward = mongoose.model('AffiliateReward', affiliateRewardSchema); 

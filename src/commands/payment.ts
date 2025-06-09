@@ -2,7 +2,106 @@ import { Telegraf } from 'telegraf';
 import { Context } from '../types';
 import { logger } from '../utils/logger';
 import { User, Transaction } from '../database';
-import { SOLANA_WALLET_ADDRESS, ADMIN_CHAT_ID } from '../config/env';
+import { SOLANA_WALLET_ADDRESS, ADMIN_CHAT_ID, QUICKNODE_RPC_URL } from '../config/env';
+import { Connection, LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
+
+// Initialize Solana connection
+const connection = new Connection(QUICKNODE_RPC_URL, 'confirmed');
+
+// Function to verify Solana transaction
+async function verifySolanaTransaction(txId: string, expectedAmount: number) {
+  try {
+    logger.info('Fetching transaction details from Solana:', { txId });
+    
+    // Fetch transaction details from Solana
+    const tx = await connection.getParsedTransaction(txId, {
+      maxSupportedTransactionVersion: 0
+    });
+
+    if (!tx) {
+      logger.warn('Transaction not found on Solana network:', { txId });
+      return { success: false, error: 'Transaction not found on blockchain' };
+    }
+
+    // Verify receiver address
+    const expectedReceiver = new PublicKey(SOLANA_WALLET_ADDRESS);
+    let foundCorrectReceiver = false;
+    let actualAmount = 0;
+    let sender = '';
+
+    logger.info('Verifying transaction:', {
+      txId,
+      expectedReceiver: expectedReceiver.toString()
+    });
+
+    // Check all instructions in the transaction
+    for (const instruction of tx.transaction.message.instructions) {
+      // Check if this is a system transfer instruction
+      if ('parsed' in instruction && 
+          instruction.programId.equals(new PublicKey('11111111111111111111111111111111')) && 
+          instruction.parsed.type === 'transfer') {
+        const transferInfo = instruction.parsed.info;
+        const destination = new PublicKey(transferInfo.destination);
+        const amount = transferInfo.lamports / LAMPORTS_PER_SOL; // Convert lamports to SOL
+        sender = transferInfo.authority || transferInfo.source;
+
+        logger.info('Checking transfer:', {
+          destination: destination.toString(),
+          amount,
+          sender
+        });
+
+        // Check if this is a transfer to our wallet
+        if (destination.equals(expectedReceiver)) {
+          foundCorrectReceiver = true;
+          actualAmount = amount;
+          logger.info('Found matching transfer:', {
+            destination: destination.toString(),
+            amount,
+            sender
+          });
+          break;
+        }
+      }
+    }
+
+    if (!foundCorrectReceiver) {
+      logger.error('Receiver address mismatch:', {
+        expected: expectedReceiver.toString(),
+        txId
+      });
+      return { success: false, error: 'Transaction receiver address mismatch' };
+    }
+
+    // Verify amount
+    if (actualAmount < expectedAmount) {
+      logger.error('Amount mismatch:', {
+        expected: expectedAmount,
+        received: actualAmount,
+        txId
+      });
+      return { 
+        success: false, 
+        error: `Transaction amount mismatch. Expected: ${expectedAmount} SOL, Received: ${actualAmount} SOL`
+      };
+    }
+
+    return {
+      success: true,
+      data: {
+        amount: actualAmount,
+        sender,
+        receiver: expectedReceiver.toString()
+      }
+    };
+  } catch (error) {
+    logger.error('Error verifying Solana transaction:', {
+      error,
+      txId
+    });
+    return { success: false, error: 'Error verifying transaction on blockchain' };
+  }
+}
 
 export function setupPaymentCommands(bot: Telegraf<Context>) {
   bot.command('payment', async (ctx) => {
@@ -132,7 +231,7 @@ After payment, click **I've Paid** to proceed with verification.`;
         }
       );
 
-      ctx.session.step = 'txid';
+      ctx.session.step = 'awaiting_txid';
     } catch (error) {
       logger.error('Error in payment confirm:', error);
       await ctx.reply('Error processing payment confirmation. Please try again.');
@@ -140,7 +239,7 @@ After payment, click **I've Paid** to proceed with verification.`;
   });
 
   bot.on('text', async (ctx, next) => {
-    if (ctx.session?.step === 'txid') {
+    if (ctx.session?.step === 'awaiting_txid') {
       try {
         if (!ctx.from) {
           await ctx.reply('Error: Could not identify user.');
@@ -168,6 +267,13 @@ After payment, click **I've Paid** to proceed with verification.`;
           return;
         }
 
+        // Verify transaction on blockchain
+        const verificationResult = await verifySolanaTransaction(txId, selectedPlan.price);
+        if (!verificationResult.success) {
+          await ctx.reply(`❌ ${verificationResult.error}`);
+          return;
+        }
+
         // Create transaction record
         const transaction = await Transaction.create({
           userId: ctx.from.id,
@@ -178,29 +284,68 @@ After payment, click **I've Paid** to proceed with verification.`;
           createdAt: new Date(),
           walletAddress: SOLANA_WALLET_ADDRESS,
         });
+        await transaction.save();
 
         await ctx.reply(`✅ Payment received! Transaction ID: ${txId}
 
 Your subscription will be activated within 1 hour after verification.
 
+Please provide your TradingView username to complete the process.
+
 Use /help for more information.`);
 
         // Reset session
-        ctx.session.step = 'complete';
-        ctx.session.selectedPlan = undefined;
-        ctx.session.paymentDetails = undefined;
+        ctx.session.step = 'awaiting_tv_username';
+        ctx.session.pendingTxId = txId;
 
-        // Notify admin
+      } catch (error) {
+        logger.error('Error processing txid:', error);
+        await ctx.reply('Error processing transaction. Please contact support.');
+      }
+    } else if (ctx.session?.step === 'awaiting_tv_username') {
+      try {
+        if (!ctx.from) {
+          await ctx.reply('Error: Could not identify user.');
+          return;
+        }
+
+        const tvUsername = ctx.message.text.trim();
+        
+        // Basic validation for TradingView username
+        if (!tvUsername || tvUsername.length < 3) {
+          await ctx.reply('Please provide a valid TradingView username (minimum 3 characters).');
+          return;
+        }
+
+        // Find pending transaction for this user
+        const transaction = await Transaction.findOne({ 
+          userId: ctx.from.id,
+          status: 'pending'
+        });
+
+        if (!transaction) {
+          await ctx.reply('No pending transaction found. Please contact support if you believe this is an error.');
+          return;
+        }
+
+        // Update user's TradingView username
+        await User.findOneAndUpdate(
+          { userId: ctx.from.id },
+          { tvUsername: tvUsername }
+        );
+
+        // Notify admin with all details
         if (ADMIN_CHAT_ID) {
           const adminMessage = `💰 New Payment Received
 
 User: ${ctx.from.first_name} (@${ctx.from.username || 'N/A'})
-Plan: ${selectedPlan.name}
-Amount: ${selectedPlan.price} SOL
-TXID: ${txId}
+Plan: ${transaction.plan}
+Amount: ${transaction.amount} SOL
+TXID: ${transaction.txId}
+TradingView Username: ${tvUsername}
 Status: Pending verification
 
-Use /verify_payment ${txId} to verify.`;
+Use /verify_payment ${transaction.txId} to verify.`;
 
           try {
             await ctx.telegram.sendMessage(ADMIN_CHAT_ID, adminMessage);
@@ -209,28 +354,20 @@ Use /verify_payment ${txId} to verify.`;
           }
         }
 
+        await ctx.reply('✅ TradingView username saved successfully! Your subscription will be activated after admin verification.');
+
+        // Reset session
+        ctx.session.step = 'complete';
+        ctx.session.selectedPlan = undefined;
+        ctx.session.paymentDetails = undefined;
+        ctx.session.pendingTxId = undefined;
+
       } catch (error) {
-        logger.error('Error processing txid:', error);
-        await ctx.reply('Error processing transaction. Please contact support.');
+        logger.error('Error processing TradingView username:', error);
+        await ctx.reply('Error processing TradingView username. Please try again or contact support.');
       }
     } else {
       return next();
-    }
-  });
-
-  bot.action('cancel_payment', async (ctx) => {
-    try {
-      await ctx.answerCbQuery();
-      
-      // Reset session
-      ctx.session.step = 'welcome';
-      ctx.session.selectedPlan = undefined;
-      ctx.session.paymentDetails = undefined;
-      
-      await ctx.editMessageText('Payment cancelled. Use /plans to view available plans.');
-    } catch (error) {
-      logger.error('Error cancelling payment:', error);
-      await ctx.reply('Payment cancelled.');
     }
   });
 
@@ -261,18 +398,27 @@ Use /verify_payment ${txId} to verify.`;
         return;
       }
 
+      // Get user details
+      const user = await User.findOne({ userId: transaction.userId });
+      if (!user?.tvUsername) {
+        await ctx.reply('Error: TradingView username not found for this user.');
+        return;
+      }
+
       // Update transaction status
       transaction.status = 'completed';
       await transaction.save();
 
       // Calculate subscription end date
       const plan = transaction.plan;
-      const durationDays = plan.includes('Monthly') ? 30 : 
+      const durationDays = plan.includes('Trial') ? 1 : 
+                          plan.includes('Monthly') ? 30 : 
                           plan.includes('6-Month') ? 180 :
                           plan.includes('Yearly') ? 365 :
-                          plan.includes('Lifetime') ? 36500 : 30;
+                          plan.includes('Lifetime') ? 36500 : 1;
 
-      const endDate = new Date();
+      const startDate = new Date();
+      const endDate = new Date(startDate);
       endDate.setDate(endDate.getDate() + durationDays);
 
       // Update user subscription
@@ -281,7 +427,7 @@ Use /verify_payment ${txId} to verify.`;
         {
           subscription: {
             plan: plan,
-            startDate: new Date(),
+            startDate: startDate,
             endDate: endDate,
             isActive: true
           }
@@ -297,9 +443,11 @@ Use /verify_payment ${txId} to verify.`;
           `🎉 Your subscription is now active!
           
 Plan: ${plan}
+Start Date: ${startDate.toLocaleDateString()}
 Valid until: ${endDate.toLocaleDateString()}
+TradingView Username: ${user.tvUsername}
 
-Use /dashboard to view your subscription details.`
+Use /subscription to view your subscription details.`
         );
       } catch (error) {
         logger.error('Error notifying user:', error);
@@ -341,6 +489,22 @@ Use /dashboard to view your subscription details.`
     } catch (error) {
       logger.error('Error in debug payments:', error);
       await ctx.reply('Error fetching pending transactions.');
+    }
+  });
+
+  bot.action('cancel_payment', async (ctx) => {
+    try {
+      await ctx.answerCbQuery();
+      
+      // Reset session
+      ctx.session.step = 'welcome';
+      ctx.session.selectedPlan = undefined;
+      ctx.session.paymentDetails = undefined;
+      
+      await ctx.editMessageText('Payment cancelled. Use /plans to view available plans.');
+    } catch (error) {
+      logger.error('Error cancelling payment:', error);
+      await ctx.reply('Payment cancelled.');
     }
   });
 } 
