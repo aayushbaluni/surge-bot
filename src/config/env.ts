@@ -46,7 +46,7 @@ const defaultValues: Partial<Environment> = {
   QUICKNODE_RPC_URL: 'https://ancient-fittest-field.solana-mainnet.quiknode.pro/52870c0fa2aaa478e5e8846f961685fa4eafbe02/',
   SUPPORT_EMAIL: 'support@surge-ai.com',
   WEBSITE_URL: 'https://surge-ai.com',
-  TWITTER_URL: 'https://twitter.com/SURGE_AI',
+  TWITTER_URL: 'https://x.com/TheSurgeCoin',
   TELEGRAM_CHANNEL: 'https://t.me/surge_announcements',
   SURGE_ANNOUNCEMENTS_CHANNEL: 'https://t.me/surge_announcements',
   PRIVATE_GROUP_LINK: 'https://t.me/+SURGEPrivateGroup',

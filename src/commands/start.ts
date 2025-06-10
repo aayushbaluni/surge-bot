@@ -400,10 +400,6 @@ For questions, contact: ${SUPPORT_EMAIL}`;
 • Regular security audits
 • No password storage required
 
-**Your Rights:**
-• Request data deletion: /support
-• Update information: /settings
-• Opt-out of communications
 
 **Cookies & Tracking:**
 • No web cookies used
@@ -591,10 +587,6 @@ async function showPrivacyPolicy(ctx: Context) {
 • Regular security audits
 • No password storage required
 
-**Your Rights:**
-• Request data deletion: /support
-• Update information: /settings
-• Opt-out of communications
 
 **Cookies & Tracking:**
 • No web cookies used

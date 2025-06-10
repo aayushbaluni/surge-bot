@@ -253,12 +253,12 @@ bot.command('twitter', async (ctx) => {
   });
 
   try {
-    const twitterMessage = `🐦 <b>Follow SURGE on Twitter</b>\n\nStay updated with the latest news, updates, and trading insights!\n\n📱 <a href="https://twitter.com/SURGE_AI">@SURGE_AI</a>\n\nJoin our community and never miss an update! 🚀`;
+    const twitterMessage = `🐦 <b>Follow SURGE on Twitter</b>\n\nStay updated with the latest news, updates, and trading insights!\n\n📱 <a href="https://x.com/TheSurgeCoin">@SURGE_AI</a>\n\nJoin our community and never miss an update! 🚀`;
 
     const keyboard = {
       inline_keyboard: [
         [
-          { text: '🐦 Follow on Twitter', url: 'https://twitter.com/SURGE_AI' }
+          { text: '🐦 Follow on Twitter', url: 'https://x.com/TheSurgeCoin' }
         ],
         [
           { text: '🔄 Back to Main Menu', callback_data: 'back_to_main' }

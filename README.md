@@ -140,7 +140,7 @@ src/
 - `/signals` - View AI trading signals
 - `/dashboard` - Performance metrics
 - `/subscription` - Manage subscription
-- `/settings` - Update preferences
+<!-- - `/settings` - Update preferences -->
 - `/help` - Help and support
 - `/faq` - Frequently asked questions
 - `/invite` - Share referral link

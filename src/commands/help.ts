@@ -24,7 +24,6 @@ Here's how to use our bot:
 • /subscription - Check your subscription status
 
 2️⃣ Account Management:
-• /settings - Update preferences
 • /renew - Renew your subscription
 
 3️⃣ Help:
@@ -65,7 +64,7 @@ Need more help? Visit our website!`;
   // Handle help command
   bot.command('help', async (ctx) => {
     try {
-      const helpMessage = `🆘 <b>SURGE Bot Help & Support</b>\n\n<b>📚 Available Commands:</b>\n• /start - Welcome & sign up\n• /menu - Main menu navigation\n• /subscription - Manage subscription\n• /settings - Update preferences\n• /help - This help menu\n• /faq - Frequently asked questions\n\n<b>🔗 Quick Links:</b>\n• Website: <a href='https://surge.trade'>surge.trade</a>\n\n<b>📞 Need Help?</b>\nVisit our website for assistance with:\n• Payment issues\n• Account access\n• Technical questions\n• Subscription inquiries`;
+      const helpMessage = `🆘 <b>SURGE Bot Help & Support</b>\n\n<b>📚 Available Commands:</b>\n• /start - Welcome & sign up\n• /menu - Main menu navigation\n• /subscription - Manage subscription\n• /help - This help menu\n• /faq - Frequently asked questions\n\n<b>🔗 Quick Links:</b>\n• Website: <a href='https://surge.trade'>surge.trade</a>\n\n<b>📞 Need Help?</b>\nVisit our website for assistance with:\n• Payment issues\n• Account access\n• Technical questions\n• Subscription inquiries`;
 
       const keyboard = {
         inline_keyboard: [
@@ -148,12 +147,10 @@ Use the buttons below to get started!`;
 **📊 Account Management:**
 • /subscription - Manage subscription
 • /renew - Renew current plan
-• /settings - Update preferences
 
 **⚙️ Features:**
 • /invite - Share referral link
 • /affiliate - View earnings
-• /tokeninfo - SURGE token data
 
 **ℹ️ Information:**
 • /help - This help menu
