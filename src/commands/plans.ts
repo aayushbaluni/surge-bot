@@ -20,16 +20,16 @@ export function setupPlanCommands(bot: Telegraf<Context>) {
             { text: '🎁 Trial – 0.1 SOL (24h)', callback_data: 'plan_trial' }
           ],
           [
-            { text: '📅 Monthly – 1 SOL', callback_data: 'plan_monthly' }
+            { text: '📅 Monthly – 1 SOL (Save 50%)', callback_data: 'plan_monthly' }
+          ],
+          // [
+          //   // { text: '🔥 6-Month – 4.5 SOL (Save 25%)', callback_data: 'plan_six_month' }
+          // ],
+          [
+            { text: '⭐ Yearly – 8 SOL (Save 60%)', callback_data: 'plan_yearly' }
           ],
           [
-            { text: '🔥 6-Month – 4.5 SOL (Save 25%)', callback_data: 'plan_six_month' }
-          ],
-          [
-            { text: '⭐ Yearly – 8 SOL (Save 33%)', callback_data: 'plan_yearly' }
-          ],
-          [
-            { text: '💎 Lifetime – 10 SOL (100 seats)', callback_data: 'plan_lifetime' }
+            { text: '💎 Lifetime – 10 SOL (Save 75%)', callback_data: 'plan_lifetime' }
           ],
           [
             { text: '🔙 Back', callback_data: 'back_to_main' }
@@ -173,16 +173,16 @@ Format: Just paste the transaction ID from your wallet.`;
             { text: '🎁 Trial – 0.1 SOL (24h)', callback_data: 'plan_trial' }
           ],
           [
-            { text: '📅 Monthly – 1 SOL', callback_data: 'plan_monthly' }
+            { text: '📅 Monthly – 1 SOL (Save 50%)', callback_data: 'plan_monthly' }
+          ],
+          // [
+          //   // { text: '🔥 6-Month – 4.5 SOL (Save 25%)', callback_data: 'plan_six_month' }
+          // ],
+          [
+            { text: '⭐ Yearly – 8 SOL (Save 60%)', callback_data: 'plan_yearly' }
           ],
           [
-            { text: '🔥 6-Month – 4.5 SOL (Save 25%)', callback_data: 'plan_six_month' }
-          ],
-          [
-            { text: '⭐ Yearly – 8 SOL (Save 33%)', callback_data: 'plan_yearly' }
-          ],
-          [
-            { text: '💎 Lifetime – 10 SOL (100 seats)', callback_data: 'plan_lifetime' }
+            { text: '💎 Lifetime – 10 SOL (Save 75%)', callback_data: 'plan_lifetime' }
           ],
           [
             { text: '🔙 Back', callback_data: 'back_to_main' }
@@ -221,16 +221,16 @@ Choose your renewal option:`;
       const keyboard: InlineKeyboardMarkup = {
         inline_keyboard: [
           [
-            { text: '📅 Monthly – 0.9 SOL (10% off)', callback_data: 'renew_monthly' }
+            { text: '📅 Monthly – 0.9 SOL (Save 50%)', callback_data: 'renew_monthly' }
           ],
           [
-            { text: '🔥 6-Month – 4.05 SOL (10% off)', callback_data: 'renew_six_month' }
+            // { text: '🔥 6-Month – 4.05 SOL (Save 60%)', callback_data: 'renew_six_month' }
           ],
           [
-            { text: '⭐ Yearly – 7.2 SOL (10% off)', callback_data: 'renew_yearly' }
+            { text: '⭐ Yearly – 7.2 SOL (Save 60%)', callback_data: 'renew_yearly' }
           ],
           [
-            { text: '💎 Upgrade to Lifetime – 9 SOL', callback_data: 'renew_lifetime' }
+            { text: '💎 Upgrade to Lifetime – 9 SOL (Save 75%)', callback_data: 'renew_lifetime' }
           ],
           [
             { text: '🔙 Back', callback_data: 'my_subscription' }
@@ -266,16 +266,16 @@ Choose your renewal option:`;
       const keyboard: InlineKeyboardMarkup = {
         inline_keyboard: [
           [
-            { text: '📅 Monthly – 0.9 SOL (10% off)', callback_data: 'renew_monthly' }
+            { text: '📅 Monthly – 0.9 SOL (Save 50%)', callback_data: 'renew_monthly' }
           ],
           [
-            { text: '🔥 6-Month – 4.05 SOL (10% off)', callback_data: 'renew_six_month' }
+            // { text: '🔥 6-Month – 4.05 SOL (10% off)', callback_data: 'renew_six_month' }
           ],
           [
-            { text: '⭐ Yearly – 7.2 SOL (10% off)', callback_data: 'renew_yearly' }
+            { text: '⭐ Yearly – 7.2 SOL (Save 60%)', callback_data: 'renew_yearly' }
           ],
           [
-            { text: '💎 Upgrade to Lifetime – 9 SOL', callback_data: 'renew_lifetime' }
+            { text: '💎 Upgrade to Lifetime – 9 SOL(Save 75%)', callback_data: 'renew_lifetime' }
           ],
           [
             { text: '🔙 Main Menu', callback_data: 'back_to_main' }

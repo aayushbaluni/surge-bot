@@ -124,7 +124,7 @@ Choose an option below to get started:`;
       const keyboard: InlineKeyboardMarkup = {
         inline_keyboard: [
           [
-            { text: '📋 View Plans', callback_data: 'view_plans' },
+            { text: '📋 Get Access Now', callback_data: 'view_plans' },
             { text: '❓ FAQ', callback_data: 'faq' }
           ],
           [

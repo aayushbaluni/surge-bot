@@ -109,7 +109,7 @@ Use the buttons below to get started!`;
       const keyboard = {
         inline_keyboard: [
           [
-            { text: '📋 View Plans', callback_data: 'view_plans' },
+            { text: '📋 Get Access Now', callback_data: 'view_plans' },
             { text: '💳 My Subscription', callback_data: 'my_subscription' }
           ],
           [

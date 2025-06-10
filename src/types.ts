@@ -62,7 +62,8 @@ export const PLANS: Record<string, Plan> = {
       'Custom oscillators & volatility alerts',
       'Private Telegram group access',
       '24/7 support'
-    ]
+    ],
+    discountText: 'Save 50%',
   },
   six_month: {
     type: 'six_month',
@@ -96,7 +97,7 @@ export const PLANS: Record<string, Plan> = {
       '10% renewal discount',
       '24/7 priority support'
     ],
-    discountText: 'Save 33%',
+    discountText: 'Save 60%',
     badge: '⭐ BEST VALUE'
   },
   lifetime: {
@@ -115,7 +116,7 @@ export const PLANS: Record<string, Plan> = {
       'VIP community access',
       'Priority support'
     ],
-    badge: '💎 LIMITED (100 seats)'
+    discountText: 'Save 75%',
   }
 };
 

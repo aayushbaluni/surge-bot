@@ -233,10 +233,9 @@ You need an active subscription to view trading signals.
 
 **Available Plans:**
 • 🎁 Trial – 0.1 SOL (24h)
-• 📅 Monthly – 1 SOL
-• 🔥 6-Month – 4.5 SOL (Save 25%)
-• ⭐ Yearly – 8 SOL (Save 33%)
-• 💎 Lifetime – 10 SOL (100 seats)
+• 📅 Monthly – 1 SOL (Save 50%)
+• ⭐ Yearly – 8 SOL (Save 60%)
+• 💎 Lifetime – 10 SOL (Save 75%)
 
 Choose an option below:`;
 
