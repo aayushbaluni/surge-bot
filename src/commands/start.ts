@@ -78,10 +78,27 @@ async function verifyTransaction(txId: string, expectedAmount: number): Promise<
 }
 
 export function setupStartCommand(bot: Telegraf<Context>) {
-  
   // /start command - Entry Point
   bot.command('start', async (ctx) => {
     try {
+      // Set up bot commands
+      await bot.telegram.setMyCommands([
+        { command: 'start', description: 'Start the bot' },
+        { command: 'menu', description: 'Show main menu' },
+        { command: 'terms', description: 'View terms of service' },
+        { command: 'privacy', description: 'View privacy policy' },
+        { command: 'about', description: 'Learn more about SURGE' }
+      ]);
+
+      // Send welcome image and message
+      await ctx.replyWithPhoto(
+        { source: './src/assets/surge.png' },
+        {
+          caption: `*Welcome to SURGE Trading Suite!* 🚀\n\nUnlock smarter trading with AI-powered signals, institutional tools, and real-time dashboards. Designed for all traders, from beginner to pro.`,
+          parse_mode: 'Markdown'
+        }
+      );
+
       // Check for referral code
       const startPayload = ctx.message.text.split(' ')[1];
       let referredBy = null;
@@ -118,8 +135,7 @@ export function setupStartCommand(bot: Telegraf<Context>) {
         userId: ctx.from.id
       };
 
-      const welcomeMessage = `👋 Welcome to **SURGE Bot** – your all-in-one AI trading assistant in Telegram.
-Choose an option below to get started:`;
+      const welcomeMessage = `Choose an option below to get started:`;
 
       const keyboard: InlineKeyboardMarkup = {
         inline_keyboard: [
@@ -128,7 +144,8 @@ Choose an option below to get started:`;
             { text: '❓ FAQ', callback_data: 'faq' }
           ],
           [
-            { text: '🌐 Website', url: WEBSITE_URL }
+            { text: '🌐 Website', url: WEBSITE_URL },
+            { text: 'ℹ️ About Us', callback_data: 'about_us' }
           ],
           [
             { text: '🐦 Twitter', url: TWITTER_URL }
@@ -244,6 +261,130 @@ Choose an option:`;
     } catch (error) {
       logger.error('Error in renew_subscription action:', error);
       await ctx.reply('Error loading renewal options. Please try /renew command.');
+    }
+  });
+
+  // /about command
+  bot.command('about', async (ctx) => {
+    try {
+      const aboutMessage = `*SURGE Trading Suite* 🚀
+
+Unlock smarter trading with AI-powered signals, institutional tools, and real-time dashboards. Designed for all traders, from beginner to pro.
+
+*SURGE AI MAX ALGO* 🤖
+Your all-in-one trading assistant. Get clear buy/sell signals, AI price forecasts, and instant risk management—right on your chart.
+
+*SURGE AITS* 📊
+See the market like the big players. Institutional trend analysis, order block detection, and advanced support/resistance—made simple.
+
+*SURGE PRO Oscillator* 📈
+Spot momentum shifts before the crowd. This oscillator highlights overbought/oversold zones and trend reversals with precision.
+
+*SURGE Momentum Scanner* 🔍
+Scan the market for the strongest trends and momentum plays. Perfect for finding high-probability setups in any asset.
+
+*Why Choose SURGE?* 💎
+No more guesswork. Get actionable insights, automated trade plans, and professional-grade tools—all in one suite.
+
+*Easy to Use* ✨
+Plug into TradingView, follow the dashboard, and trade with confidence. No coding or complex setup required.
+
+*Risk Management Built-In* 🛡️
+Every signal comes with entry, stop loss, and take profit levels—so you always know your risk.
+
+*For All Markets* 🌐
+Works on crypto, forex, stocks, and more. One subscription, unlimited potential.`;
+
+      const keyboard: InlineKeyboardMarkup = {
+        inline_keyboard: [
+          [
+            { text: '📋 Get Access Now', callback_data: 'view_plans' }
+          ],
+          [
+            { text: '🔙 Back to Menu', callback_data: 'back_to_main' }
+          ]
+        ]
+      };
+
+      await ctx.reply(aboutMessage, { 
+        reply_markup: keyboard,
+        parse_mode: 'Markdown'
+      });
+    } catch (error) {
+      logger.error('Error in about command:', error);
+      await ctx.reply('Error loading about us information. Please try again.');
+    }
+  });
+
+  // Update the main menu keyboard to include About Us
+  const keyboard: InlineKeyboardMarkup = {
+    inline_keyboard: [
+      [
+        { text: '📋 Get Access Now', callback_data: 'view_plans' },
+        { text: '❓ FAQ', callback_data: 'faq' }
+      ],
+      [
+        { text: '🌐 Website', url: WEBSITE_URL },
+        { text: 'ℹ️ About Us', callback_data: 'about_us' }
+      ],
+      [
+        { text: '🐦 Twitter', url: TWITTER_URL }
+      ],
+      [
+        { text: '🤝 Affiliate Program', callback_data: 'affiliate_program' }
+      ]
+    ]
+  };
+
+  // Add handler for About Us button
+  bot.action('about_us', async (ctx) => {
+    try {
+      const aboutMessage = `*SURGE Trading Suite* 🚀
+
+Unlock smarter trading with AI-powered signals, institutional tools, and real-time dashboards. Designed for all traders, from beginner to pro.
+
+*SURGE AI MAX ALGO* 🤖
+Your all-in-one trading assistant. Get clear buy/sell signals, AI price forecasts, and instant risk management—right on your chart.
+
+*SURGE AITS* 📊
+See the market like the big players. Institutional trend analysis, order block detection, and advanced support/resistance—made simple.
+
+*SURGE PRO Oscillator* 📈
+Spot momentum shifts before the crowd. This oscillator highlights overbought/oversold zones and trend reversals with precision.
+
+*SURGE Momentum Scanner* 🔍
+Scan the market for the strongest trends and momentum plays. Perfect for finding high-probability setups in any asset.
+
+*Why Choose SURGE?* 💎
+No more guesswork. Get actionable insights, automated trade plans, and professional-grade tools—all in one suite.
+
+*Easy to Use* ✨
+Plug into TradingView, follow the dashboard, and trade with confidence. No coding or complex setup required.
+
+*Risk Management Built-In* 🛡️
+Every signal comes with entry, stop loss, and take profit levels—so you always know your risk.
+
+*For All Markets* 🌐
+Works on crypto, forex, stocks, and more. One subscription, unlimited potential.`;
+
+      const keyboard: InlineKeyboardMarkup = {
+        inline_keyboard: [
+          [
+            { text: '📋 Get Access Now', callback_data: 'view_plans' }
+          ],
+          [
+            { text: '🔙 Back to Menu', callback_data: 'back_to_main' }
+          ]
+        ]
+      };
+
+      await ctx.editMessageText(aboutMessage, { 
+        reply_markup: keyboard,
+        parse_mode: 'Markdown'
+      });
+    } catch (error) {
+      logger.error('Error in about_us action:', error);
+      await ctx.answerCbQuery('Error loading about us information. Please try again.');
     }
   });
 }
