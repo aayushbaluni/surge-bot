@@ -38,7 +38,7 @@ Need more help? Visit our website!`;
             { text: '❓ FAQ', callback_data: 'faq' }
           ],
           [
-            { text: '🌐 Website', url: 'https://surge.trade' }
+            { text: '🌐 Website', url: 'https://surgetrade.io' }
           ],
           [{ text: '🔄 Back to Main Menu', callback_data: 'back_to_main' }]
         ]
@@ -64,7 +64,7 @@ Need more help? Visit our website!`;
   // Handle help command
   bot.command('help', async (ctx) => {
     try {
-      const helpMessage = `🆘 <b>SURGE Bot Help & Support</b>\n\n<b>📚 Available Commands:</b>\n• /start - Welcome & sign up\n• /menu - Main menu navigation\n• /subscription - Manage subscription\n• /help - This help menu\n• /faq - Frequently asked questions\n\n<b>🔗 Quick Links:</b>\n• Website: <a href='https://surge.trade'>surge.trade</a>\n\n<b>📞 Need Help?</b>\nVisit our website for assistance with:\n• Payment issues\n• Account access\n• Technical questions\n• Subscription inquiries`;
+      const helpMessage = `🆘 <b>SURGE Bot Help & Support</b>\n\n<b>📚 Available Commands:</b>\n• /start - Welcome & sign up\n• /menu - Main menu navigation\n• /subscription - Manage subscription\n• /help - This help menu\n• /faq - Frequently asked questions\n\n<b>🔗 Quick Links:</b>\n• Website: <a href='https://surgetrade.io'>surgetrade.io</a>\n\n<b>📞 Need Help?</b>\nVisit our website for assistance with:\n• Payment issues\n• Account access\n• Technical questions\n• Subscription inquiries`;
 
       const keyboard = {
         inline_keyboard: [
@@ -72,7 +72,7 @@ Need more help? Visit our website!`;
             { text: '❓ FAQ', callback_data: 'faq' }
           ],
           [
-            { text: '🌐 Website', url: 'https://surge.trade' }
+            { text: '🌐 Website', url: 'https://surgetrade.io' }
           ],
           [
             { text: '🔙 Main Menu', callback_data: 'back_to_main' }
