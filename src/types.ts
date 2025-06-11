@@ -20,6 +20,7 @@ export interface SessionData {
   messageId?: number;
   isChannelMember?: boolean;
   lastActivity?: number;
+  pendingTxId?: string;
 }
 
 export interface Context extends TelegrafContext {

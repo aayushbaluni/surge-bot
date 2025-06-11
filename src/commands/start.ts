@@ -104,10 +104,13 @@ export function setupStartCommand(bot: Telegraf<Context>) {
       let referredBy = null;
 
       if (startPayload) {
-        const referrer = await User.findOne({ referralCode: startPayload });
+        logger.info(`Processing start payload: ${startPayload}`);
+        const referrer = await User.findOne({ affiliateCode: startPayload });
         if (referrer) {
           referredBy = referrer.userId;
-          logger.info(`User ${ctx.from.id} referred by ${referrer.userId}`);
+          logger.info(`User ${ctx.from.id} referred by ${referrer.userId} with code ${startPayload}`);
+        } else {
+          logger.info(`No referrer found for code: ${startPayload}`);
         }
       }
 

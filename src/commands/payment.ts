@@ -1,7 +1,7 @@
 import { Telegraf } from 'telegraf';
 import { Context } from '../types';
 import { logger } from '../utils/logger';
-import { User, Transaction } from '../database';
+import { User, Transaction, AffiliateReward } from '../database';
 import { SOLANA_WALLET_ADDRESS, ADMIN_CHAT_ID, QUICKNODE_RPC_URL } from '../config/env';
 import { Connection, LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
 
@@ -329,10 +329,16 @@ Use /help for more information.`);
         }
 
         // Update user's TradingView username
-        await User.findOneAndUpdate(
+        const user = await User.findOneAndUpdate(
           { userId: ctx.from.id },
-          { tvUsername: tvUsername }
+          { tvUsername: tvUsername },
+          { new: true }
         );
+
+        if (!user) {
+          await ctx.reply('Error: User not found.');
+          return;
+        }
 
         // Notify admin with all details
         if (ADMIN_CHAT_ID) {
@@ -345,7 +351,7 @@ TXID: ${transaction.txId}
 TradingView Username: ${tvUsername}
 Status: Pending verification
 
-Use /verify_payment ${transaction.txId} to verify.`;
+Use /verify_payment ${transaction.txId} to verify the payment.`;
 
           try {
             await ctx.telegram.sendMessage(ADMIN_CHAT_ID, adminMessage);
@@ -400,8 +406,14 @@ Use /verify_payment ${transaction.txId} to verify.`;
 
       // Get user details
       const user = await User.findOne({ userId: transaction.userId });
-      if (!user?.tvUsername) {
-        await ctx.reply('Error: TradingView username not found for this user.');
+      if (!user) {
+        await ctx.reply('Error: User not found.');
+        return;
+      }
+
+      // Check if user has provided TradingView username
+      if (!user.tvUsername) {
+        await ctx.reply('Error: TradingView username not found for this user. Please ask the user to provide their TradingView username first.');
         return;
       }
 
@@ -433,6 +445,75 @@ Use /verify_payment ${transaction.txId} to verify.`;
           }
         }
       );
+
+      // Process referral reward if user was referred
+      const referredUser = await User.findOne({ userId: transaction.userId });
+      if (referredUser?.referredBy) {
+        try {
+          // Calculate reward amount (10% of transaction amount)
+          const rewardAmount = transaction.amount * 0.1;
+
+          // Create referral reward
+          const reward = await AffiliateReward.create({
+            userId: referredUser.referredBy,
+            referredUserId: transaction.userId,
+            amount: rewardAmount,
+            status: 'pending',
+            createdAt: new Date()
+          });
+
+          logger.info(`Created affiliate reward:`, {
+            rewardId: reward._id,
+            referrerId: referredUser.referredBy,
+            referredUserId: transaction.userId,
+            amount: rewardAmount
+          });
+
+          // Update referrer's stats
+          await User.findOneAndUpdate(
+            { userId: referredUser.referredBy },
+            {
+              $inc: {
+                'affiliateStats.totalEarnings': rewardAmount,
+                'affiliateStats.pendingEarnings': rewardAmount,
+                'affiliateStats.successfulAffiliates': 1,
+                'affiliateStats.totalAffiliates': 1
+              }
+            }
+          );
+
+          // Notify referrer about the reward
+          try {
+            const referrer = await User.findOne({ userId: referredUser.referredBy });
+            if (referrer) {
+              const rewardMessage = `🎉 *New Affiliate Reward!*
+
+You've earned ${rewardAmount} SOL from a successful referral!
+
+*Details:*
+• Referred User: ${referredUser.username || 'Anonymous'}
+• Plan: ${transaction.plan}
+• Amount: ${rewardAmount} SOL
+• Status: Pending
+
+Your total earnings: ${referrer.affiliateStats?.totalEarnings || 0} SOL
+Pending rewards: ${referrer.affiliateStats?.pendingEarnings || 0} SOL
+
+Use /affiliate to view your complete stats.`;
+
+              await ctx.telegram.sendMessage(referredUser.referredBy, rewardMessage, {
+                parse_mode: 'Markdown'
+              });
+              logger.info(`Sent reward notification to referrer ${referredUser.referredBy}`);
+            }
+          } catch (error) {
+            logger.error('Error sending reward notification:', error);
+          }
+
+        } catch (error) {
+          logger.error('Error processing affiliate reward:', error);
+        }
+      }
 
       await ctx.reply(`✅ Payment verified for transaction ${txId}`);
 

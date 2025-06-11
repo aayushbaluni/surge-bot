@@ -145,7 +145,7 @@ When done, tap **I've Paid**.`;
     try {
       await ctx.answerCbQuery();
       
-      const txidMessage = `📥 Please reply with your **Solana TXID** or upload a screenshot.
+      const txidMessage = `📥 Please reply with your **Solana TXID** .
 
 Format: Just paste the transaction ID from your wallet.`;
 

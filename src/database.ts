@@ -56,7 +56,8 @@ const userSchema = new mongoose.Schema({
     pendingEarnings: { type: Number, default: 0 },
     totalAffiliates: { type: Number, default: 0 },
     successfulAffiliates: { type: Number, default: 0 }
-  }
+  },
+  referredBy: { type: Number, index: true }
 });
 
 // Add indexes for common queries
@@ -84,15 +85,17 @@ transactionSchema.index({ userId: 1, status: 1 });
 // Affiliate Reward Schema
 const affiliateRewardSchema = new mongoose.Schema({
   userId: { type: Number, required: true, index: true },
-  affiliateCode: { type: String, required: true, index: true },
+  referredUserId: { type: Number, required: true, index: true },
   amount: { type: Number, required: true },
   status: { type: String, enum: ['pending', 'paid'], default: 'pending' },
   createdAt: { type: Date, default: Date.now },
-  paidAt: Date
+  paidAt: Date,
+  paymentTxId: String
 });
 
 // Add compound index for affiliate reward queries
 affiliateRewardSchema.index({ userId: 1, status: 1 });
+affiliateRewardSchema.index({ referredUserId: 1 });
 
 // Generate unique affiliate code
 userSchema.pre('save', async function(next) {
@@ -100,7 +103,11 @@ userSchema.pre('save', async function(next) {
     let code;
     let isUnique = false;
     while (!isUnique) {
-      code = Math.random().toString(36).substring(2, 8).toUpperCase();
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      code = '';
+      for (let i = 0; i < 6; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
       const existingUser = await User.findOne({ affiliateCode: code });
       if (!existingUser) {
         isUnique = true;
@@ -114,4 +121,29 @@ userSchema.pre('save', async function(next) {
 // Create models
 export const User = mongoose.model('User', userSchema);
 export const Transaction = mongoose.model('Transaction', transactionSchema);
-export const AffiliateReward = mongoose.model('AffiliateReward', affiliateRewardSchema); 
+export const AffiliateReward = mongoose.model('AffiliateReward', affiliateRewardSchema);
+
+interface User {
+  userId: number;
+  username?: string;
+  firstName?: string;
+  lastName?: string;
+  tvUsername?: string;
+  walletAddress?: string;
+  createdAt?: Date;
+  lastActive?: Date;
+  subscription?: {
+    plan: string;
+    startDate: Date;
+    endDate: Date;
+    isActive: boolean;
+  };
+  affiliateCode?: string;
+  affiliateStats?: {
+    totalEarnings: number;
+    pendingEarnings: number;
+    totalAffiliates: number;
+    successfulAffiliates: number;
+  };
+  referredBy?: number;
+} 
