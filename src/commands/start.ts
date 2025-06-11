@@ -304,52 +304,67 @@ Use /affiliate to track your earnings and affiliates.`;
   // /terms command
   bot.command('terms', async (ctx) => {
     try {
-      const termsMessage = `📋 **Terms of Service**
+      const termsMessage = `📋 *Terms of Service*
 
-**SURGE Bot Terms & Conditions**
+*Last Updated: May 2025*
 
-**1. Service Description**
-SURGE Bot provides AI-powered trading signals for educational purposes only. We do not provide financial advice.
+*1. AGREEMENT*
+By using SURGE Trading Solutions LLC's services, you agree to these terms. If you disagree, you must discontinue use immediately.
 
-**2. Subscription Terms**
-• Subscriptions are non-refundable after 24 hours
-• Access granted within 1 hour of payment verification
-• Renewals offer 10% discount for existing users
+*2. INTELLECTUAL PROPERTY*
+All content, code, and trademarks are our property and protected by law. No unauthorized copying or distribution allowed.
 
-**3. User Responsibilities**
-• Provide accurate TradingView username
-• Trade responsibly and manage risk
-• Do not share account access
+*3. USER LICENSE*
+You get a limited, non-transferable license for personal use. Any breach results in immediate termination.
 
-**4. Signal Disclaimer**
-• Signals are for educational purposes
-• Past performance doesn't guarantee future results
-• Always do your own research (DYOR)
+*4. USER RESPONSIBILITIES*
+You must:
+• Be legally capable
+• Not be a minor
+• Not use automated means
+• Use services legally
+• Comply with all laws
 
-**5. Payment Terms**
-• Payments accepted in SOL only
-• Transactions are processed on Solana blockchain
-• No chargebacks possible due to blockchain nature
+*5. PAYMENT TERMS*
+• We accept SOL, cards, PayPal
+• Subscriptions auto-renew
+• Lifetime plan = product lifetime
+• No refunds (1-Day Trial available)
 
-**6. Privacy & Data**
-• We store minimal user data
-• No trading data is collected
-• Telegram handles authentication
+*6. CANCELLATION*
+Cancel anytime via customer portal or email support@surgetrade.io
 
-**7. Liability**
-SURGE Bot is not liable for trading losses. Use signals at your own risk.
+*7. PROHIBITED ACTIVITIES*
+• No data scraping
+• No reverse engineering
+• No sharing access
+• No security circumvention
+• No automated usage
 
-**Last Updated:** December 2024
+*8. RISK DISCLAIMER*
+• Services provided "AS IS"
+• Trading is high-risk
+• Not financial advice
+• Past performance ≠ future results
 
-For questions, contact: ${SUPPORT_EMAIL}`;
+*9. LIABILITY*
+We are not liable for any damages from your use of our services.
 
-      const keyboard: InlineKeyboardMarkup = {
+*10. TERMINATION*
+We can terminate access for any reason without notice.
+
+*11. GOVERNING LAW*
+Laws of [Your Country/State] apply.
+
+*12. CONTACT*
+SURGE Trading Solutions LLC
+Website: https://surgetrade.io
+Email: support@surgetrade.io`;
+
+      const keyboard = {
         inline_keyboard: [
           [
-            { text: '🔒 Privacy Policy', callback_data: 'privacy_policy' }
-          ],
-          [
-            { text: '🔙 Main Menu', callback_data: 'back_to_main' }
+            { text: '🔙 Back to Menu', callback_data: 'back_to_main' }
           ]
         ]
       };
@@ -367,49 +382,72 @@ For questions, contact: ${SUPPORT_EMAIL}`;
   // /privacy command
   bot.command('privacy', async (ctx) => {
     try {
-      const privacyMessage = `🔒 **Privacy Policy**
+      const privacyMessage = `🔒 *Privacy Policy*
 
-**SURGE Bot Privacy Policy**
+*Last Updated: May 2025*
 
-**Information We Collect:**
-• Telegram user ID and username
-• TradingView username (provided by user)
-• Subscription status and payment records
-• Bot usage analytics
+*INTRODUCTION*
+This Privacy Policy outlines how SURGE Trading Solutions LLC ("we") handles your information when you use our website (https://surgetrade.io) and SURGE Trading Suite.
 
-**How We Use Information:**
-• Provide bot services and trading signals
-• Process subscriptions and payments
-• Send relevant updates and notifications
-• Improve our services
+*1. INFORMATION WE COLLECT*
 
-**Information We Don't Collect:**
-• Personal trading data
-• Wallet private keys
-• Sensitive financial information
-• Location data
+*Personal Information:*
+• TradingView username (for access)
+• Email address (for support/updates)
+• Payment details (processed securely)
 
-**Data Sharing:**
-• We don't sell or share personal data
-• Payment data secured via blockchain
-• Anonymous usage statistics only
+*Automatic Collection:*
+• IP address & browser info
+• Usage statistics
+• Cookies for functionality
 
-**Data Security:**
-• Encrypted data storage
-• Secure API communications
-• Regular security audits
-• No password storage required
+*2. HOW WE USE YOUR DATA*
+• Provide & maintain services
+• Process payments securely
+• Send important updates
+• Improve user experience
+• Prevent fraud
+• Marketing (with consent)
 
+*3. DATA RETENTION*
+We keep your data only as long as necessary for:
+• Service provision
+• Legal compliance
+• Dispute resolution
 
-**Cookies & Tracking:**
-• No web cookies used
-• Telegram handles authentication
-• Anonymous bot analytics only
+*4. DATA SHARING*
+We share data only with:
+• Payment processors
+• Analytics services
+• Legal requirements
 
-**Contact Us:**
-For privacy questions: ${SUPPORT_EMAIL}
+*5. YOUR RIGHTS*
+You can:
+• Access your data
+• Request corrections
+• Object to processing
+• Request data deletion
+• Export your data
+• Withdraw consent
 
-**Last Updated:** December 2024`;
+*6. COOKIES*
+We use cookies for:
+• Basic functionality
+• Analytics
+• User preferences
+
+*7. CHILDREN'S PRIVACY*
+• No services for under 18
+• No collection from children
+• Contact us if child data found
+
+*8. POLICY UPDATES*
+We may update this policy. Check the "Last Updated" date for changes.
+
+*CONTACT US*
+SURGE Trading Solutions LLC
+Website: https://surgetrade.io
+Email: support@surgetrade.io`;
 
       const keyboard: InlineKeyboardMarkup = {
         inline_keyboard: [
@@ -492,50 +530,90 @@ Click the button below to join our channel:`;
 async function showTermsOfService(ctx: Context) {
   const termsMessage = `📋 **Terms of Service**
 
-**SURGE Bot Terms & Conditions**
+*Last Updated: May 2025*
 
-**1. Service Description**
-SURGE Bot provides AI-powered trading signals for educational purposes only. We do not provide financial advice.
+### 1. AGREEMENT TO TERMS
 
-**2. Subscription Terms**
-• Subscriptions are non-refundable after 24 hours
-• Access granted within 1 hour of payment verification
-• Renewals offer 10% discount for existing users
+These Terms of Service constitute a legally binding agreement made between you, whether personally or on behalf of an entity ("you") and *SURGE Trading Solutions LLC* ("we," "us," or "our"), concerning your access to and use of the ⁠ https://surgetrade.io ⁠ website as well as the trading indicators, scripts, software, and any other media form, media channel, mobile website or mobile application related, linked, or otherwise connected thereto (collectively, the "Services").
 
-**3. User Responsibilities**
-• Provide accurate TradingView username
-• Trade responsibly and manage risk
-• Do not share account access
+You agree that by accessing the Services, you have read, understood, and agree to be bound by all of these Terms of Service. *IF YOU DO NOT AGREE WITH ALL OF THESE TERMS OF SERVICE, THEN YOU ARE EXPRESSLY PROHIBITED FROM USING THE SERVICES AND YOU MUST DISCONTINUE USE IMMEDIATELY.*
 
-**4. Signal Disclaimer**
-• Signals are for educational purposes
-• Past performance doesn't guarantee future results
-• Always do your own research (DYOR)
+### 2. INTELLECTUAL PROPERTY RIGHTS
 
-**5. Payment Terms**
-• Payments accepted in SOL only
-• Transactions are processed on Solana blockchain
-• No chargebacks possible due to blockchain nature
+Unless otherwise indicated, the Services are our proprietary property and all source code, databases, functionality, software, website designs, text, photographs, and graphics on the Site (collectively, the "Content") and the trademarks, service marks, and logos contained therein (the "Marks") are owned or controlled by us or licensed to us, and are protected by copyright and trademark laws and various other intellectual property rights and unfair competition laws of the United States, foreign jurisdictions, and international conventions.
 
-**6. Privacy & Data**
-• We store minimal user data
-• No trading data is collected
-• Telegram handles authentication
+The Content and the Marks are provided on the Site "AS IS" for your information and personal use only. Except as expressly provided in these Terms of Service, no part of the Services and no Content or Marks may be copied, reproduced, aggregated, republished, uploaded, posted, publicly displayed, encoded, translated, transmitted, distributed, sold, licensed, or otherwise exploited for any commercial purpose whatsoever, without our express prior written permission.
 
-**7. Liability**
-SURGE Bot is not liable for trading losses. Use signals at your own risk.
+### 3. USER LICENSE
 
-**Last Updated:** December 2024
+Provided that you are eligible to use the Services, you are granted a limited, non-exclusive, non-transferable, revocable license to access and use the Services and to download or print a copy of any portion of the Content to which you have properly gained access solely for your personal, non-commercial use. We reserve all rights not expressly granted to you in and to the Services, the Content and the Marks. Any breach of these Terms of Service will result in the immediate termination of your license without notice.
 
-For questions, contact: ${SUPPORT_EMAIL}`;
+### 4. USER REPRESENTATIONS
 
-  const keyboard: InlineKeyboardMarkup = {
+By using the Services, you represent and warrant that: 
+(1) you have the legal capacity and you agree to comply with these Terms of Service; 
+(2) you are not a minor in the jurisdiction in which you reside; 
+(3) you will not access the Services through automated or non-human means, whether through a bot, script or otherwise; 
+(4) you will not use the Services for any illegal or unauthorized purpose; 
+(5) your use of the Services will not violate any applicable law or regulation.
+
+### 5. FEES AND PAYMENT
+
+We accept payment via credit/debit card, PayPal, and select cryptocurrencies (SOL). You may be required to purchase or pay a fee to access some of our services. You agree to provide current, complete, and accurate purchase and account information for all purchases made via the Site. You further agree to promptly update account and payment information, including email address, payment method, and payment card expiration date, so that we can complete your transactions and contact you as needed.
+
+*   *Subscriptions:* If you purchase a subscription, you will be billed in advance on a recurring and periodic basis ("Billing Cycle"). Billing cycles are set either on a monthly or yearly basis. Your subscription will automatically renew at the end of each Billing Cycle unless you cancel it through your customer portal or by contacting us at ⁠ support@surgetrade.io ⁠.
+*   *Lifetime Plan:* A "Lifetime" plan refers to the lifetime of the SURGE Trading Suite product line. It entitles you to access for as long as the product is actively maintained and sold by SURGE Trading Solutions LLC.
+*   *Refunds:* Due to the digital nature of our product and the immediate access provided, all fees are non-refundable. We provide a 1-Day Trial for you to evaluate the product before purchase.
+
+### 6. CANCELLATION
+
+You can cancel your subscription at any time. Your cancellation will take effect at the end of the current paid term. If you are unsatisfied with our services, please email us at ⁠ support@surgetrade.io ⁠.
+
+### 7. PROHIBITED ACTIVITIES
+
+You may not access or use the Services for any purpose other than that for which we make the Services available. The Services may not be used in connection with any commercial endeavors except those that are specifically endorsed or approved by us. As a user of the Services, you agree not to:
+*   Systematically retrieve data or other content from the Services to create or compile, directly or indirectly, a collection, compilation, database, or directory without written permission from us.
+*   Decompile, reverse engineer, disassemble, or otherwise attempt to derive the source code for the indicators.
+*   Share, lease, sell, or redistribute your access to our Services.
+*   Circumvent, disable, or otherwise interfere with security-related features of the Services.
+*   Engage in any automated use of the system, such as using scripts to send comments or messages, or using any data mining, robots, or similar data gathering and extraction tools.
+
+### 8. DISCLAIMER AND ACKNOWLEDGEMENT OF RISK
+
+THE SERVICES ARE PROVIDED ON AN AS-IS AND AS-AVAILABLE BASIS. YOU AGREE THAT YOUR USE OF THE SERVICES WILL BE AT YOUR SOLE RISK. TO THE FULLEST EXTENT PERMITTED BY LAW, WE DISCLAIM ALL WARRANTIES, EXPRESS OR IMPLIED, IN CONNECTION WITH THE SERVICES AND YOUR USE THEREOF, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+
+TRADING IN FINANCIAL MARKETS IS A HIGH-RISK ACTIVITY AND IS NOT SUITABLE FOR ALL INVESTORS. BEFORE DECIDING TO TRADE, YOU SHOULD CAREFULLY CONSIDER YOUR INVESTMENT OBJECTIVES, LEVEL OF EXPERIENCE, AND RISK APPETITE.
+
+THE CONTENT AND SIGNALS PROVIDED BY THE SERVICES ARE FOR EDUCATIONAL AND INFORMATIONAL PURPOSES ONLY AND DO NOT CONSTITUTE FINANCIAL OR INVESTMENT ADVICE. PAST PERFORMANCE IS NOT INDICATIVE OF FUTURE RESULTS.
+
+### 9. LIMITATION OF LIABILITY
+
+IN NO EVENT WILL WE OR OUR DIRECTORS, EMPLOYEES, OR AGENTS BE LIABLE TO YOU OR ANY THIRD PARTY FOR ANY DIRECT, INDIRECT, CONSEQUENTIAL, EXEMPLARY, INCIDENTAL, SPECIAL, OR PUNITIVE DAMAGES, INCLUDING LOST PROFIT, LOST REVENUE, LOSS OF DATA, OR OTHER DAMAGES ARISING FROM YOUR USE OF THE SERVICES, EVEN IF WE HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+
+### 10. TERM AND TERMINATION
+
+These Terms of Service shall remain in full force and effect while you use the Services. WITHOUT LIMITING ANY OTHER PROVISION OF THESE TERMS OF SERVICE, WE RESERVE THE RIGHT TO, IN OUR SOLE DISCRETION AND WITHOUT NOTICE OR LIABILITY, DENY ACCESS TO AND USE OF THE SERVICES (INCLUDING BLOCKING CERTAIN IP ADDRESSES), TO ANY PERSON FOR ANY REASON OR FOR NO REASON, INCLUDING WITHOUT LIMITATION FOR BREACH OF ANY REPRESENTATION, WARRANTY, OR COVENANT CONTAINED IN THESE TERMS OF SERVICE OR OF ANY APPLICABLE LAW OR REGULATION.
+
+### 11. GOVERNING LAW AND DISPUTE RESOLUTION
+
+These Terms shall be governed by and defined following the laws of [Your Country/State]. SURGE Trading Solutions LLC and yourself irrevocably consent that the courts of [Your Country/State] shall have exclusive jurisdiction to resolve any dispute which may arise in connection with these terms.
+
+### 12. MISCELLANEOUS
+
+These Terms of Service and any policies or operating rules posted by us on the Services constitute the entire agreement and understanding between you and us. Our failure to exercise or enforce any right or provision of these Terms of Service shall not operate as a waiver of such right or provision.
+
+### 13. CONTACT US
+
+In order to resolve a complaint regarding the Services or to receive further information regarding use of the Services, please contact us at:
+
+*SURGE Trading Solutions LLC*
+*Website:* ⁠ https://surgetrade.io ⁠
+*Email:* ⁠ support@surgetrade.io ⁠`;
+
+  const keyboard = {
     inline_keyboard: [
       [
-        { text: '🔒 Privacy Policy', callback_data: 'privacy_policy' }
-      ],
-      [
-        { text: '🔙 Main Menu', callback_data: 'back_to_main' }
+        { text: '🔙 Back to Menu', callback_data: 'back_to_main' }
       ]
     ]
   };
