@@ -8,6 +8,7 @@ interface Environment {
   // Bot Configuration
   BOT_TOKEN: string;
   ADMIN_CHAT_ID: string;
+  ADMIN_IDS: number[];
   CHANNEL_USERNAME: string;
   
   // Database Configuration
@@ -42,6 +43,7 @@ interface Environment {
 // Default environment values
 const defaultValues: Partial<Environment> = {
   MONGODB_URI: 'mongodb://localhost:27017/surgebot',
+  ADMIN_IDS: [],
   SOLANA_WALLET_ADDRESS: 'HFSjX2pJxVzETcrCqX4K8mMvuRjDvJWnCXaSURGEsolAddress',
   QUICKNODE_RPC_URL: 'https://ancient-fittest-field.solana-mainnet.quiknode.pro/52870c0fa2aaa478e5e8846f961685fa4eafbe02/',
   SUPPORT_EMAIL: 'support@surge-ai.com',
@@ -61,6 +63,7 @@ const defaultValues: Partial<Environment> = {
 const requiredEnvVars: (keyof Environment)[] = [
   'BOT_TOKEN',
   'ADMIN_CHAT_ID',
+  'ADMIN_IDS',
   'CHANNEL_USERNAME'
 ];
 
@@ -71,7 +74,8 @@ function loadEnvironment(): Environment {
   // Load all possible environment variables
   const envKeys: (keyof Environment)[] = [
     'BOT_TOKEN',
-    'ADMIN_CHAT_ID', 
+    'ADMIN_CHAT_ID',
+    'ADMIN_IDS',
     'CHANNEL_USERNAME',
     'MONGODB_URI',
     'SOLANA_WALLET_ADDRESS',
@@ -93,9 +97,19 @@ function loadEnvironment(): Environment {
 
   // Load environment variables with defaults
   envKeys.forEach(key => {
-    const value = process.env[key] || defaultValues[key];
-    if (value) {
-      env[key] = value;
+    if (key === 'ADMIN_IDS') {
+      // Handle ADMIN_IDS separately
+      if (process.env.ADMIN_IDS) {
+        env[key] = process.env.ADMIN_IDS.split(',').map(id => parseInt(id.trim()));
+      } else {
+        // If ADMIN_IDS is not set, use ADMIN_CHAT_ID as the only admin
+        env[key] = [parseInt(env.ADMIN_CHAT_ID || '0')];
+      }
+    } else {
+      const value = process.env[key] || defaultValues[key];
+      if (value) {
+        env[key] = value;
+      }
     }
   });
 
@@ -133,6 +147,7 @@ function loadEnvironment(): Environment {
     nodeEnv: env.NODE_ENV,
     hasBotToken: !!env.BOT_TOKEN,
     hasAdminChatId: !!env.ADMIN_CHAT_ID,
+    hasAdminIds: !!env.ADMIN_IDS,
     hasChannelUsername: !!env.CHANNEL_USERNAME,
     hasMongoUri: !!env.MONGODB_URI,
     hasSolanaWallet: !!env.SOLANA_WALLET_ADDRESS,
@@ -151,6 +166,7 @@ export const ENV = loadEnvironment();
 export const {
   BOT_TOKEN,
   ADMIN_CHAT_ID,
+  ADMIN_IDS,
   CHANNEL_USERNAME,
   MONGODB_URI,
   SOLANA_WALLET_ADDRESS,

@@ -11,8 +11,9 @@ import { setupMiddleware } from './middleware';
 import { logger } from './utils/logger';
 import { connectDatabase } from './database';
 import { Context } from './types';
-import { ENV, BOT_TOKEN, isProduction } from './config/env';
+import { ENV, BOT_TOKEN, isProduction, ADMIN_IDS } from './config/env';
 import { User, AffiliateReward } from './database';
+import { SubscriptionMonitor } from './utils/subscriptionMonitor';
 
 logger.info('Starting to import setupSubscriptionCommand...');
 import { setupSubscriptionCommand } from './commands/subscription';
@@ -39,6 +40,12 @@ const BOT_COMMANDS = [
 logger.info('Initializing bot with token...');
 const bot = new Telegraf<Context>(BOT_TOKEN);
 logger.info('Bot initialized successfully');
+
+// Initialize subscription monitor
+const subscriptionMonitor = new SubscriptionMonitor(bot);
+
+// Start subscription monitoring (check every 60 minutes)
+subscriptionMonitor.startMonitoring(60);
 
 // Add direct command handler for dashboard
 bot.command('dashboard', async (ctx) => {
@@ -326,6 +333,57 @@ ${commandList}
   } catch (error) {
     logger.error('Error in debug command:', error);
     await ctx.reply('Error fetching debug information');
+  }
+});
+
+// Add handler for renew subscription callback
+bot.action('renew_subscription', async (ctx) => {
+  try {
+    await ctx.answerCbQuery();
+    await ctx.reply('🔄 Let\'s renew your subscription!', {
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: '📊 View Available Plans', callback_data: 'view_plans' }]
+        ]
+      }
+    });
+  } catch (error) {
+    logger.error('Error in renew subscription callback:', error);
+    await ctx.reply('Error processing renewal request. Please try again.');
+  }
+});
+
+// Add handler for admin processing expired users
+bot.action(/^processed_(\d+)$/, async (ctx) => {
+  try {
+    // Check if user is admin
+    if (!ADMIN_IDS.includes(ctx.from.id)) {
+      await ctx.answerCbQuery('Unauthorized');
+      return;
+    }
+
+    const userId = parseInt(ctx.match[1]);
+    await ctx.answerCbQuery('Marked as processed');
+
+    // Update message to show it's been processed
+    if (ctx.callbackQuery.message && 'text' in ctx.callbackQuery.message) {
+      await ctx.editMessageText(
+        ctx.callbackQuery.message.text + '\n\n✅ Processed by: ' + ctx.from.username,
+        {
+          parse_mode: 'HTML',
+          reply_markup: {
+            inline_keyboard: [
+              [{ text: '✅ Processed', callback_data: 'already_processed' }]
+            ]
+          }
+        }
+      );
+    }
+
+    logger.info(`Admin ${ctx.from.id} marked user ${userId} as processed`);
+  } catch (error) {
+    logger.error('Error in processed callback:', error);
+    await ctx.answerCbQuery('Error processing request');
   }
 });
 
